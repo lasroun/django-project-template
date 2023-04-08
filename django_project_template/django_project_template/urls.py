@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from customuser.views import UserList, UserCreate, ChangePasswordView, UserUpdate, PasswordResetView, \
-    PasswordResetConfirmView
+    PasswordResetConfirmView, ConfirmEmail
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 urlpatterns = [
@@ -14,5 +14,6 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token-verify'),
     path('api/user/update/', UserUpdate.as_view(), name='user-update'),
     path('api/password_reset/', PasswordResetView.as_view(), name='password_reset'),
+    path('confirm/email/<int:user_id>/', ConfirmEmail.as_view(), name='confirm-email'),
     path('password_reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 ]

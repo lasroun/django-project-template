@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from .serializers import UserSerializer, UpdateUserSerializer, ChangePasswordSerializer, PasswordConfirmResetSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -30,12 +31,43 @@ class UserList(APIView):
 
 
 class UserCreate(APIView):
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+            user = serializer.save()
+            user.is_active = False
+            user.email_confirmation_sent_at = timezone.now()
+            user.save()
+
+            # Envoyer un e-mail de confirmation de compte avec un lien unique
+            confirmation_link = 'http://localhost:8000/confirm/email/{}/'.format(user.pk)
+            send_mail(
+                'Confirmation de compte',
+                'Cliquez sur ce lien pour confirmer votre compte : {}'.format(confirmation_link),
+                'noreply@monsite.com',
+                [user.email],
+                fail_silently=False,
+            )
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ConfirmEmail(APIView):
+    def get(self, request, user_id):
+        user = User.objects.get(id=user_id)
+        time_limit = timezone.now() - timezone.timedelta(hours=24)  # Limite de temps de 24 heures
+
+        # Vérifier si l'e-mail a déjà été confirmé ou si le délai de 24 heures est expiré
+        if user.email_confirmed or user.email_confirmation_sent_at < time_limit:
+            return Response(status=status.HTTP_400_BAD_REQUEST)  # L'e-mail a expiré ou a déjà été confirmé
+
+        # Confirmer l'adresse e-mail de l'utilisateur
+        user.email_confirmed = True
+        user.is_active = True
+        user.save()
+        return Response(status=status.HTTP_200_OK)  # Confirmation d'e-mail réussie
 
 
 class UserUpdate(generics.UpdateAPIView):
@@ -101,7 +133,7 @@ class PasswordResetView(APIView):
         email_subject = 'Reset your password'
         reset_url = reverse('password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
 
-        email_body = f"Hi, \nPlease click the link below to reset your password: \n{reset_url}"
+        email_body = f"Hi, \nPlease click the link below to reset your password: \nhttp://127.0.0.1:8000/{reset_url}"
 
         send_mail(
             email_subject,

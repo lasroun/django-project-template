@@ -12,11 +12,14 @@ class UserAdmin(BaseUserAdmin):
     list_display = ['email']
     list_filter = ['is_staff', 'pseudo']
     fieldsets = (
-        (None, {'fields': ('email', 'password', 'last_login')}),
-        ('account info', {'fields': ('pseudo',)}),
-        ('Personal info', {'fields': ('firstname', 'lastname')}),
+        ('Account info', {'fields': ('pseudo',)}),
+        (
+            'Personal info',
+            {'fields': ('email', 'firstname', 'lastname', 'email_confirmed', 'created_at', 'last_login')}),
+        ('Password', {'fields': ('password',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )
+    readonly_fields = ('created_at',)
     # add_fieldsets n'est pas un attribut ModelAdmin standard. UtilisateurAdmin
     # remplace get_fieldsets pour utiliser cet attribut lors de la création d'un utilisateur.
     add_fieldsets = (

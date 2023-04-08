@@ -6,7 +6,7 @@ Django-project-template est un modèle de projet Django préconfiguré qui vous 
 
 Actuellement, nous avons implémenté le modèle pour la création d'utilisateur et toutes les fonctionnalités associées, telles que :
 
-- Création de compte utilisateur
+- Création de compte utilisateur avec confirmation par email
 - Connexion et déconnexion de l'utilisateur
 - Réinitialisation de mot de passe
 - Profil utilisateur avec édition de profil et changement de mot de passe

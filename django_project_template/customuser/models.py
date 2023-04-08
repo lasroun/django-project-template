@@ -22,13 +22,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(verbose_name='email address', max_length=100, unique=True, )
     firstname = models.CharField(verbose_name='First Name', max_length=60)
     lastname = models.CharField(verbose_name='Last Name', max_length=60)
+    email_confirmed = models.BooleanField(default=False)
+    email_confirmation_sent_at = models.DateTimeField(null=True, blank=True)
 
     pseudo = models.CharField(verbose_name='Pseudo', max_length=60, unique=True)
     password = models.CharField("password", max_length=128)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    last_login = models.DateTimeField("last login", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     groups = models.ManyToManyField(Group, verbose_name="groups", blank=True)
     user_permissions = models.ManyToManyField(Permission, verbose_name="user permissions", blank=True)
     USERNAME_FIELD = 'email'
