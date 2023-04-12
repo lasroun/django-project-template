@@ -56,12 +56,20 @@ class UserCreate(APIView):
 
 class ConfirmEmail(APIView):
     def get(self, request, user_id):
-        user = User.objects.get(id=user_id)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise Http404
+        
         time_limit = timezone.now() - timezone.timedelta(hours=24)  # Limite de temps de 24 heures
 
         # Vérifier si l'e-mail a déjà été confirmé ou si le délai de 24 heures est expiré
-        if user.email_confirmed or user.email_confirmation_sent_at < time_limit:
-            return Response(status=status.HTTP_400_BAD_REQUEST)  # L'e-mail a expiré ou a déjà été confirmé
+        if user.email_confirmed:
+            return Response(status=status.HTTP_400_BAD_REQUEST)  # L'e-mail a déjà été confirmé
+
+        if user.email_confirmation_sent_at < time_limit:
+            user.delete()
+            return Response(status=status.HTTP_400_BAD_REQUEST)  # L'e-mail a expiré, supprimer le compte de l'utilisateur
 
         # Confirmer l'adresse e-mail de l'utilisateur
         user.email_confirmed = True
